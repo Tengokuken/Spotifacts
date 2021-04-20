@@ -49,9 +49,42 @@ namespace Spotifacts.Controllers
             TrackRequest trackRequest = new TrackRequest();
             FullTrack fullTrack = new FullTrack();
             var a = await spotify.Tracks.Get("5ivhfpfnoHhD8rUI2t3aJG");
+            var user = await spotify.UserProfile.Current();
             Debug.WriteLine(a.Name);
-            Debug.WriteLine(a.Artists);
-            Debug.WriteLine(a.Album);
+            Debug.WriteLine(a.Artists.First());
+            Debug.WriteLine(a.Album.Name);
+            Debug.WriteLine("Hello " + user.DisplayName);
+
+            await foreach (
+                var playlist in spotify.Paginate(await spotify.Playlists.CurrentUsers())
+                )
+            {
+                Debug.WriteLine(playlist.Name);
+            }
+            await foreach (
+                var topArtist in spotify.Paginate(await spotify.Personalization.GetTopArtists())
+                )
+            {
+                Debug.WriteLine(topArtist.Name);
+            }
+            try
+            {
+                await foreach (
+                var topSong in spotify.Paginate(await spotify.Personalization.GetTopTracks())
+                )
+                {
+                    Debug.WriteLine(topSong.Name);
+                }
+            }
+            catch (APIException e)
+            {
+                Debug.WriteLine(e.Response);
+                // Prints: invalid id
+                Debug.WriteLine(e.Message);
+                // Prints: BadRequest
+                Debug.WriteLine(e.Response?.StatusCode);
+            }
+
             // Also important for later: response.RefreshToken
             return View(new ReportModel { spotify = spotify});
         }
@@ -80,8 +113,15 @@ namespace Spotifacts.Controllers
               "clientID",
               LoginRequest.ResponseType.Code
             )
+            // TODO: Not sure what scopes are needed
             {
-                Scope = new[] { Scopes.PlaylistReadPrivate, Scopes.PlaylistReadCollaborative }
+                Scope = new[] { 
+                    Scopes.PlaylistReadPrivate, 
+                    Scopes.PlaylistReadCollaborative, 
+                    Scopes.UserReadPrivate, 
+                    Scopes.UserLibraryRead,
+                    Scopes.UserTopRead
+                }
             };
 
             Uri uri = loginRequest.ToUri();
