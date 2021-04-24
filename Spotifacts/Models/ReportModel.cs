@@ -13,5 +13,6 @@ namespace Spotifacts.Models
         public string AccessToken { get; set; }
         public ArrayList topArtists { get; set; }
         public ArrayList topSongs { get; set; }
+        public ArrayList playlists { get; set; }
     }
 }

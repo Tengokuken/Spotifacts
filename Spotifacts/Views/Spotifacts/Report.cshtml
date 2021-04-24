@@ -1,7 +1,7 @@
 ﻿@using SpotifyAPI.Web;
 @{
     ViewData["Title"] = "Report";
-    ReportModel reportModel = (ReportModel) ViewData["report"];
+    ReportModel reportModel = (ReportModel)ViewData["report"];
 }
 
 <h1>Hi @reportModel.user, here is your report</h1>
@@ -10,7 +10,15 @@
     @foreach (FullTrack song in reportModel.topSongs)
     {
         <li>
-            @song.Name
+            <div>
+                @song.Name
+                @*<img src="@song.image"/>*@
+                <video controls="" name="media">
+                    <source src="@song.PreviewUrl" type="audio/mpeg">
+                </video>
+                <a href="@song.Uri">No image yet but you can click here to go to the song</a>
+
+            </div>
         </li>
     }
 </ul>
@@ -19,7 +27,22 @@
     @foreach (FullArtist artist in reportModel.topArtists)
     {
         <li>
-            @artist.Name
+            <div>
+                @artist.Name
+                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
+</div>
+        </li>
+    }
+</ul>
+<h2>Top artists</h2>
+<ul>
+    @foreach (SimplePlaylist playlist in reportModel.playlists)
+    {
+        <li>
+            <div>
+                @playlist.Name
+                <a href="@playlist.Uri"><img src="@playlist.Images[0].Url" height="300" width="300" /></a>
+            </div>
         </li>
     }
 </ul>

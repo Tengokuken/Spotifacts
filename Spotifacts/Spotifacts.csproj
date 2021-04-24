@@ -11,6 +11,10 @@
     <PackageReference Include="SpotifyAPI.Web.Auth" Version="6.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="APICalls\" />
+  </ItemGroup>
+
 
 
 </Project>
