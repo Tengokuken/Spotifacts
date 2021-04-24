@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Spotifacts.Models;
+using Spotifacts.APICalls;
 using System;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
@@ -48,78 +49,24 @@ namespace Spotifacts.Controllers
               new AuthorizationCodeTokenRequest(_config["clientID"], _config["clientSecret"], RouteData.Values["id"] + Request.Query["code"], new Uri("https://localhost:44374/Spotifacts/Report"))
             );
             // Set search limits
-            PersonalizationTopRequest personalization = new PersonalizationTopRequest();
-            personalization.TimeRangeParam = PersonalizationTopRequest.TimeRange.ShortTerm;
+            PersonalizationTopRequest personalization = new PersonalizationTopRequest
+            {
+                TimeRangeParam = PersonalizationTopRequest.TimeRange.ShortTerm
+            };
             // Doesn't seem to work. Always at 50
             //personalization.Limit = 10;
             Debug.WriteLine("walpu");
             var spotify = new SpotifyClient(response.AccessToken);
-            //SearchRequest searchRequest = new SearchRequest(SearchRequest.Types.Track, "Ignite");
-            TrackRequest trackRequest = new TrackRequest();
-            FullTrack fullTrack = new FullTrack();
-            var a = await spotify.Tracks.Get("5ivhfpfnoHhD8rUI2t3aJG");
             var user = await spotify.UserProfile.Current();
-            Debug.WriteLine(a.Name);
-            Debug.WriteLine(a.Artists.First());
-            Debug.WriteLine(a.Album.Name);
-            Debug.WriteLine("Hello " + user.DisplayName);
-            ArrayList topArtists = new ArrayList();
-            ArrayList topSongs = new ArrayList();
-            ArrayList playlists = new ArrayList();
+            ArrayList topArtists = await PersonalizationCalls.GetTopArtists(spotify, personalization);
+            ArrayList topSongs = await PersonalizationCalls.GetTopSongs(spotify, personalization);
+            ArrayList playlists = await PlaylistCalls.GetPlaylists(spotify);
             ReportModel spotifyReport = new ReportModel {
                 topArtists = topArtists,
                 topSongs = topSongs,
                 playlists = playlists,
                 user = user.DisplayName
             };
-            //await foreach (
-            //    var playlist in spotify.Paginate(await spotify.Playlists.CurrentUsers())
-            //    )
-            //{
-            //    Debug.WriteLine(playlist.Name);
-            //}
-            //int count = 1;
-            var topArtistList = await spotify.Personalization.GetTopArtists(personalization);
-            await foreach (var topArtist in spotify.Paginate(topArtistList))
-            {
-                topArtists.Add(topArtist);
-                //Debug.WriteLine(topArtist.Name);
-                // TODO: idk how to do this, i thought PersonalizationTopRequest is supposed to limit but w/e
-                //if (count == personalization.Limit)
-                //    break;
-                //count++;
-            }
-            //count = 0;
-            try
-            {
-                var topSongList = await spotify.Personalization.GetTopTracks(personalization);
-                await foreach (var topSong in spotify.Paginate(topSongList))
-                {
-                    topSongs.Add(topSong);
-                    //Debug.WriteLine(topSong.Name);
-                    //if (count == personalization.Limit)
-                    //    break;
-                    //count++;
-                }
-            }
-            catch (APIException e)
-            {
-                Debug.WriteLine(e.Response);
-                // Prints: invalid id
-                Debug.WriteLine(e.Message);
-                // Prints: BadRequest
-                Debug.WriteLine(e.Response?.StatusCode);
-            }
-            var playlistss = await spotify.Playlists.CurrentUsers();
-            await foreach (var playlist in spotify.Paginate(playlistss))
-            {
-                playlists.Add(playlist);
-                //Debug.WriteLine(topArtist.Name);
-                // TODO: idk how to do this, i thought PersonalizationTopRequest is supposed to limit but w/e
-                //if (count == personalization.Limit)
-                //    break;
-                //count++;
-            }
             ViewData["report"] = spotifyReport;
             // TODO: Also important for later: response.RefreshToken
             return View();
