@@ -5,20 +5,25 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Spotifacts.Models;
 using System;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
+using System.Collections;
 
 namespace Spotifacts.Controllers
 {
     public class SpotifactsController : Controller
     {
         private readonly ILogger<SpotifactsController> _logger;
+        private readonly IConfiguration _config;
 
-        public SpotifactsController(ILogger<SpotifactsController> logger)
+        public SpotifactsController(ILogger<SpotifactsController> logger,
+                                    IConfiguration config)
         {
             _logger = logger;
+            _config = config;
         }
 
         public IActionResult Index()
@@ -38,11 +43,15 @@ namespace Spotifacts.Controllers
 
         public async Task<IActionResult> Report()
         {
-            
             Debug.WriteLine(RouteData.Values["id"] + Request.Query["code"]);
             var response = await new OAuthClient().RequestToken(
-              new AuthorizationCodeTokenRequest("clientID", "clientSecret", RouteData.Values["id"] + Request.Query["code"], new Uri("https://localhost:44374/Spotifacts/Report"))
+              new AuthorizationCodeTokenRequest(_config["clientID"], _config["clientSecret"], RouteData.Values["id"] + Request.Query["code"], new Uri("https://localhost:44374/Spotifacts/Report"))
             );
+            // Set search limits
+            PersonalizationTopRequest personalization = new PersonalizationTopRequest();
+            personalization.TimeRangeParam = PersonalizationTopRequest.TimeRange.ShortTerm;
+            //personalization.Limit = 1;
+
             Debug.WriteLine("walpu");
             var spotify = new SpotifyClient(response.AccessToken);
             //SearchRequest searchRequest = new SearchRequest(SearchRequest.Types.Track, "Ignite");
@@ -54,26 +63,41 @@ namespace Spotifacts.Controllers
             Debug.WriteLine(a.Artists.First());
             Debug.WriteLine(a.Album.Name);
             Debug.WriteLine("Hello " + user.DisplayName);
-
-            await foreach (
-                var playlist in spotify.Paginate(await spotify.Playlists.CurrentUsers())
-                )
+            ArrayList topArtists = new ArrayList();
+            ArrayList topSongs = new ArrayList();
+            ReportModel spotifyReport = new ReportModel {
+                topArtists = topArtists,
+                topSongs = topSongs,
+                user = user.DisplayName
+            };
+            //await foreach (
+            //    var playlist in spotify.Paginate(await spotify.Playlists.CurrentUsers())
+            //    )
+            //{
+            //    Debug.WriteLine(playlist.Name);
+            //}
+            //int count = 1;
+            var topArtistList = await spotify.Personalization.GetTopArtists(personalization);
+            await foreach (var topArtist in spotify.Paginate(topArtistList))
             {
-                Debug.WriteLine(playlist.Name);
-            }
-            await foreach (
-                var topArtist in spotify.Paginate(await spotify.Personalization.GetTopArtists())
-                )
-            {
+                topArtists.Add(topArtist);
                 Debug.WriteLine(topArtist.Name);
+                // TODO: idk how to do this, i thought PersonalizationTopRequest is supposed to limit but w/e
+                //if (count == personalization.Limit)
+                //    break;
+                //count++;
             }
+            //count = 0;
             try
             {
-                await foreach (
-                var topSong in spotify.Paginate(await spotify.Personalization.GetTopTracks())
-                )
+                var topSongList = await spotify.Personalization.GetTopTracks(personalization);
+                await foreach (var topSong in spotify.Paginate(topSongList))
                 {
+                    topSongs.Add(topSong);
                     Debug.WriteLine(topSong.Name);
+                    //if (count == personalization.Limit)
+                    //    break;
+                    //count++;
                 }
             }
             catch (APIException e)
@@ -84,9 +108,9 @@ namespace Spotifacts.Controllers
                 // Prints: BadRequest
                 Debug.WriteLine(e.Response?.StatusCode);
             }
-
-            // Also important for later: response.RefreshToken
-            return View(new ReportModel { spotify = spotify});
+            ViewData["report"] = spotifyReport;
+            // TODO: Also important for later: response.RefreshToken
+            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -110,7 +134,7 @@ namespace Spotifacts.Controllers
             // Make sure "http://localhost:5000" is in your applications redirect URIs!
             var loginRequest = new LoginRequest(
               new Uri("https://localhost:44374/Spotifacts/Report"),
-              "clientID",
+              _config["clientID"],
               LoginRequest.ResponseType.Code
             )
             // TODO: Not sure what scopes are needed

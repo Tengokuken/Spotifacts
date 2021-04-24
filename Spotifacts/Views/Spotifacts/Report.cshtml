@@ -1,7 +1,25 @@
-﻿
+﻿@using SpotifyAPI.Web;
 @{
     ViewData["Title"] = "Report";
+    ReportModel reportModel = (ReportModel) ViewData["report"];
 }
 
-<h1>Report</h1>
-
+<h1>Hi @reportModel.user, here is your report</h1>
+<h2>Top songs</h2>
+<ul>
+    @foreach (FullTrack song in reportModel.topSongs)
+    {
+        <li>
+            @song.Name
+        </li>
+    }
+</ul>
+<h2>Top artists</h2>
+<ul>
+    @foreach (FullArtist artist in reportModel.topArtists)
+    {
+        <li>
+            @artist.Name
+        </li>
+    }
+</ul>
