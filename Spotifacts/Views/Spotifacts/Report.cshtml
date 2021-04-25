@@ -16,8 +16,7 @@
                 <video controls="" name="media">
                     <source src="@song.PreviewUrl" type="audio/mpeg">
                 </video>
-                <a href="@song.Uri">No image yet but you can click here to go to the song</a>
-
+                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
             </div>
         </li>
     }
