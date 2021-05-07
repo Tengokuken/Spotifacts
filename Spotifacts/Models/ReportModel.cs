@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SpotifyAPI.Web;
-using System.Collections;
 
 namespace Spotifacts.Models
 {
@@ -11,8 +10,10 @@ namespace Spotifacts.Models
     {
         public string user { get; set; }
         public string AccessToken { get; set; }
-        public ArrayList topArtists { get; set; }
-        public ArrayList topSongs { get; set; }
         public ArrayList playlists { get; set; }
+
+        public TopListsModel shortTerm { get; set; }
+        public TopListsModel mediumTerm { get; set; }
+        public TopListsModel longTerm { get; set; }
     }
 }

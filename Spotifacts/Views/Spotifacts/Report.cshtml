@@ -2,12 +2,48 @@
 @{
     ViewData["Title"] = "Report";
     ReportModel reportModel = (ReportModel)ViewData["report"];
+
 }
 
 <h1>Hi @reportModel.user, here is your report</h1>
 <h2>Top songs</h2>
+@*TODO: make it like toggleable to show only 1 at a time*@
+@*TODO: Create sidebar so user can go to places quick*@
+<h3>Within 4 weeks</h3>
 <ul>
-    @foreach (FullTrack song in reportModel.topSongs)
+    @foreach (FullTrack song in reportModel.shortTerm.topSongs)
+    {
+        <li>
+            <div>
+                @song.Name
+                @*<img src="@song.image"/>*@
+                <video controls="" name="media">
+                    <source src="@song.PreviewUrl" type="audio/mpeg">
+                </video>
+                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
+            </div>
+        </li>
+    }
+</ul>
+<h3>Within half of a year</h3>
+<ul>
+    @foreach (FullTrack song in reportModel.shortTerm.topSongs)
+    {
+        <li>
+            <div>
+                @song.Name
+                @*<img src="@song.image"/>*@
+                <video controls="" name="media">
+                    <source src="@song.PreviewUrl" type="audio/mpeg">
+                </video>
+                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
+            </div>
+        </li>
+    }
+</ul>
+<h3>All Time</h3>
+<ul>
+    @foreach (FullTrack song in reportModel.mediumTerm.topSongs)
     {
         <li>
             <div>
@@ -22,14 +58,39 @@
     }
 </ul>
 <h2>Top artists</h2>
+<h3>Within 4 weeks</h3>
 <ul>
-    @foreach (FullArtist artist in reportModel.topArtists)
+    @foreach (FullArtist artist in reportModel.shortTerm.topArtists)
     {
         <li>
             <div>
                 @artist.Name
                 <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
-</div>
+            </div>
+        </li>
+    }
+</ul>
+<h3>Within half of a year</h3>
+<ul>
+    @foreach (FullArtist artist in reportModel.mediumTerm.topArtists)
+    {
+        <li>
+            <div>
+                @artist.Name
+                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
+            </div>
+        </li>
+    }
+</ul>
+<h3>All Time</h3>
+<ul>
+    @foreach (FullArtist artist in reportModel.longTerm.topArtists)
+    {
+        <li>
+            <div>
+                @artist.Name
+                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
+            </div>
         </li>
     }
 </ul>
