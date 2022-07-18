@@ -2,107 +2,124 @@
 @{
     ViewData["Title"] = "Report";
     ReportModel reportModel = (ReportModel)ViewData["report"];
+    Dictionary<string, TopListsModel> topModel = new Dictionary<string, TopListsModel>();
+    topModel.Add("Within 4 Weeks", reportModel.shortTerm);
+    topModel.Add("Within Half a Year", reportModel.mediumTerm);
+    topModel.Add("All Time", reportModel.longTerm);
 
 }
-
 <h1>Hi @reportModel.user, here is your report</h1>
 <h2>Top songs</h2>
 @*TODO: make it like toggleable to show only 1 at a time*@
 @*TODO: Create sidebar so user can go to places quick*@
-<h3>Within 4 weeks</h3>
-<ul>
-    @foreach (FullTrack song in reportModel.shortTerm.topSongs)
-    {
-        <li>
-            <div>
-                @song.Name
-                @*<img src="@song.image"/>*@
-                <video controls="" name="media">
-                    <source src="@song.PreviewUrl" type="audio/mpeg">
-                </video>
-                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
+@*TODO: click on names/artist to open spotify page*@
+<button id="btnSongsShort" onclick="changeSongsList('Within 4 Weeks')">Within 4 Weeks</button>
+<button id="btnSongsMedium" onclick="changeSongsList('Within Half a Year')">Within Half a Year</button>
+<button id="btnSongsLong" onclick="changeSongsList('All Time')">All Time</button>
+
+@foreach (string mode in topModel.Keys)
+{
+    <h3>@mode</h3>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-image">
+                    <thead>
+                        <tr>
+                            <th scope="col">Song name</th>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Song</th>
+                            <th scope="col">Image</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (FullTrack song in topModel[mode].topSongs)
+                        {
+                            <tr>
+                                <th scope="row">@song.Name</th>
+                                @{
+                                    string artists = "";
+                                    foreach (SimpleArtist artist in song.Artists)
+                                    {
+                                        if (string.IsNullOrEmpty(artists))
+                                            artists = artists + artist.Name;
+                                        else
+                                            artists = artists + ", " + artist.Name;
+                                    }
+                                }
+                                <th scope="row">@artists</th>
+                                <td class="w-25">
+                                    <video controls="" name="media">
+                                        <source src="@song.PreviewUrl" type="audio/mpeg">
+                                    </video>
+                                </td>
+                                <td class="w-25">
+                                    <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="150" width="150"></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </li>
-    }
-</ul>
-<h3>Within half of a year</h3>
-<ul>
-    @foreach (FullTrack song in reportModel.shortTerm.topSongs)
-    {
-        <li>
-            <div>
-                @song.Name
-                @*<img src="@song.image"/>*@
-                <video controls="" name="media">
-                    <source src="@song.PreviewUrl" type="audio/mpeg">
-                </video>
-                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
-            </div>
-        </li>
-    }
-</ul>
-<h3>All Time</h3>
-<ul>
-    @foreach (FullTrack song in reportModel.mediumTerm.topSongs)
-    {
-        <li>
-            <div>
-                @song.Name
-                @*<img src="@song.image"/>*@
-                <video controls="" name="media">
-                    <source src="@song.PreviewUrl" type="audio/mpeg">
-                </video>
-                <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="300" width="300"></a>
-            </div>
-        </li>
-    }
-</ul>
+        </div>
+    </div>
+}
+
+
 <h2>Top artists</h2>
-<h3>Within 4 weeks</h3>
-<ul>
-    @foreach (FullArtist artist in reportModel.shortTerm.topArtists)
-    {
-        <li>
-            <div>
-                @artist.Name
-                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
+@foreach (string mode in topModel.Keys)
+{
+    <h3>@mode</h3>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-image">
+                    <thead>
+                        <tr>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Image</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (FullArtist artist in topModel[mode].topArtists)
+                        {
+                            <tr>
+                                <th scope="row">@artist.Name</th>
+                                <td class="w-25">
+                                    <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="150" width="150"></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </li>
-    }
-</ul>
-<h3>Within half of a year</h3>
-<ul>
-    @foreach (FullArtist artist in reportModel.mediumTerm.topArtists)
-    {
-        <li>
-            <div>
-                @artist.Name
-                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
-            </div>
-        </li>
-    }
-</ul>
-<h3>All Time</h3>
-<ul>
-    @foreach (FullArtist artist in reportModel.longTerm.topArtists)
-    {
-        <li>
-            <div>
-                @artist.Name
-                <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="300" width="300" /></a>
-            </div>
-        </li>
-    }
-</ul>
-<h2>Playlists</h2>
-<ul>
-    @foreach (SimplePlaylist playlist in reportModel.playlists)
-    {
-        <li>
-            <div>
-                @playlist.Name
-                <a href="@playlist.Uri"><img src="@playlist.Images[0].Url" height="300" width="300" /></a>
-            </div>
-        </li>
-    }
-</ul>
+        </div>
+    </div>
+}
+
+<h2>Your Playlists</h2>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-image">
+                <thead>
+                    <tr>
+                        <th scope="col">Playlist Name</th>
+                        <th scope="col">Playlist Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (SimplePlaylist playlist in reportModel.playlists)
+                    {
+                        <tr>
+                            <th scope="row">@playlist.Name</th>
+                            <td class="w-25">
+                                <a href="@playlist.Uri"><img src="@playlist.Images[0].Url" height="150" width="150"></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
