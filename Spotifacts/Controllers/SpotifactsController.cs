@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Spotifacts.Models;
+using Microsoft.Extensions.Logging;
 using Spotifacts.APICalls;
-using System;
-using System.Threading.Tasks;
+using Spotifacts.Models;
 using SpotifyAPI.Web;
+using System;
 using System.Collections;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Spotifacts.Controllers
 {
@@ -44,11 +40,10 @@ namespace Spotifacts.Controllers
 
         public async Task<IActionResult> Report()
         {
-            Debug.WriteLine(RouteData.Values["id"] + Request.Query["code"]);
+            
             var response = await new OAuthClient().RequestToken(
               new AuthorizationCodeTokenRequest(_config["clientID"], _config["clientSecret"], RouteData.Values["id"] + Request.Query["code"], new Uri("https://localhost:44374/Spotifacts/Report"))
             );
-            Debug.WriteLine("walpu");
             var spotify = new SpotifyClient(response.AccessToken);
             var user = await spotify.UserProfile.Current();
             // Generate report
@@ -87,7 +82,6 @@ namespace Spotifacts.Controllers
         {
             ArrayList topArtists = await PersonalizationCalls.GetTopArtists(spotify, personalization);
             ArrayList topSongs = await PersonalizationCalls.GetTopSongs(spotify, personalization);
-            
 
             TopListsModel report = new TopListsModel
             {
@@ -103,16 +97,6 @@ namespace Spotifacts.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public async Task Test()
-        {
-            string token = "BQBLXlV58VOz51pDE8r-mz5r1Gj7ujcfFcAoBHeR5ZlMlztTuYkypVUeFVzbLe__I65gjSMsyZCesh8hFhzO8xbKINElKNRLGK3YekVmbnyKUZqOEwT2YVCjUVNxqvFlT07iIuPzNXB0qjR-M0Ent1gyVVnvkyYCozWnqFItMq3HzMPrx-sS7gd9VrXHo9NIofS_FDpdXQ";
-            // TODO: get using implicit grant auth
-            var spotify = new SpotifyClient(token);
-
-            var track = await spotify.Tracks.Get("29cshFKbqa3DmctSYEHjfT");
-            Debug.WriteLine(track);
-        }
-
         public ActionResult GetAuthURI()
         {
             // Make sure "http://localhost:5000" is in your applications redirect URIs!
@@ -121,7 +105,6 @@ namespace Spotifacts.Controllers
               _config["clientID"],
               LoginRequest.ResponseType.Code
             )
-            // TODO: Not sure what scopes are needed
             {
                 Scope = new[] { 
                     Scopes.PlaylistReadPrivate, 
@@ -135,8 +118,6 @@ namespace Spotifacts.Controllers
             Uri uri = loginRequest.ToUri();
             Debug.WriteLine(uri);
             // Redirect user to uri via your favorite web-server
-            Debug.WriteLine("potato");
-            //Console.WriteLine();
             return Redirect(uri.ToString());
         }
     }

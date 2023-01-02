@@ -1,43 +1,46 @@
 ﻿@using SpotifyAPI.Web;
+
 @{
     ViewData["Title"] = "Report";
     ReportModel reportModel = (ReportModel)ViewData["report"];
-    Dictionary<string, TopListsModel> topModel = new Dictionary<string, TopListsModel>();
-    topModel.Add("Within 4 Weeks", reportModel.shortTerm);
-    topModel.Add("Within Half a Year", reportModel.mediumTerm);
-    topModel.Add("All Time", reportModel.longTerm);
-
+    TopListsModel topModel = reportModel.shortTerm; // Default
+                                                    //topModel.Add("Within 4 Weeks", reportModel.shortTerm);
+                                                    //topModel.Add("Within Half a Year", reportModel.mediumTerm);
+                                                    //topModel.Add("All Time", reportModel.longTerm);
 }
+
 <h1>Hi @reportModel.user, here is your report</h1>
-<h2>Top songs</h2>
-@*TODO: make it like toggleable to show only 1 at a time*@
 @*TODO: Create sidebar so user can go to places quick*@
 @*TODO: click on names/artist to open spotify page*@
-<button id="btnSongsShort" onclick="changeSongsList('Within 4 Weeks')">Within 4 Weeks</button>
-<button id="btnSongsMedium" onclick="changeSongsList('Within Half a Year')">Within Half a Year</button>
-<button id="btnSongsLong" onclick="changeSongsList('All Time')">All Time</button>
+<button id="btnSongsShort" class="btn" onclick="changeSongsList('Within 4 Weeks')">Within 4 Weeks</button>
+<button id="btnSongsMedium" class="btn" onclick="changeSongsList('Within Half a Year')">Within Half a Year</button>
+<button id="btnSongsLong" class="btn" onclick="changeSongsList('All Time')">All Time</button>
 
-@foreach (string mode in topModel.Keys)
-{
-    <h3>@mode</h3>
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-image">
-                    <thead>
-                        <tr>
-                            <th scope="col">Song name</th>
-                            <th scope="col">Artist</th>
-                            <th scope="col">Song</th>
-                            <th scope="col">Image</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (FullTrack song in topModel[mode].topSongs)
+<h2>Top songs</h2>
+
+<h3 id="songsTimeframe">Within 4 Weeks</h3>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-image">
+                <thead>
+                    <tr>
+                        <th scope="col">Ranking</th>
+                        <th scope="col">Song name</th>
+                        <th scope="col">Artist</th>
+                        <th scope="col">Song</th>
+                        <th scope="col">Image</th>
+                    </tr>
+                </thead>
+                <tbody id="songsList">
+                    @{
+                        int count = 1;
+                        foreach (FullTrack song in topModel.topSongs)
                         {
-                            <tr>
-                                <th scope="row">@song.Name</th>
-                                @{
+                                        <tr>
+                                            <th scope="row">@count</th>
+                                            <th scope="row">@song.Name</th>
+                                            @{
                                     string artists = "";
                                     foreach (SimpleArtist artist in song.Artists)
                                     {
@@ -46,56 +49,63 @@
                                         else
                                             artists = artists + ", " + artist.Name;
                                     }
-                                }
-                                <th scope="row">@artists</th>
-                                <td class="w-25">
-                                    <video controls="" name="media">
-                                        <source src="@song.PreviewUrl" type="audio/mpeg">
-                                    </video>
-                                </td>
-                                <td class="w-25">
-                                    <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="150" width="150"></a>
-                                </td>
-                            </tr>
+                                        }
+                                        <th scope="row">@artists</th>
+                                        <td class="w-25">
+                                            <video controls="" name="media">
+                                                <source src="@song.PreviewUrl" type="audio/mpeg">
+                                            </video>
+                                        </td>
+                                        <td class="w-25">
+                                            <a href="@song.Uri"><img src="@song.Album.Images[0].Url" height="150" width="150"></a>
+                                        </td>
+                                    </tr>
+                            count += 1;
                         }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-}
+</div>
+
 
 
 <h2>Top artists</h2>
-@foreach (string mode in topModel.Keys)
-{
-    <h3>@mode</h3>
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-image">
-                    <thead>
-                        <tr>
-                            <th scope="col">Artist</th>
-                            <th scope="col">Image</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (FullArtist artist in topModel[mode].topArtists)
+
+<h3 id="artistsTimeframe">Within Some weeks</h3>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-image">
+                <thead>
+                    <tr>
+                        <th scope="col">Ranking</th>
+                        <th scope="col">Artist</th>
+                        <th scope="col">Image</th>
+                    </tr>
+                </thead>
+                <tbody id="artistsList">
+                    @{
+                        count = 1;
+                        foreach (FullArtist artist in topModel.topArtists)
                         {
                             <tr>
+                                <th scope="row">@count</th>
                                 <th scope="row">@artist.Name</th>
                                 <td class="w-25">
                                     <a href="@artist.Uri"><img src="@artist.Images[0].Url" height="150" width="150"></a>
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            </div>
+                        count += 1;
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-}
+</div>
+
 
 <h2>Your Playlists</h2>
 <div class="container">
@@ -123,3 +133,104 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript"> 
+    function changeSongsList(mode)
+    {
+        console.log("I was clicked", mode);
+        switch (mode)
+        {
+            case "Within 4 Weeks":
+                topModel = @Html.Raw(Json.Serialize(@ViewBag.report.shortTerm));
+                break;
+            case "Within Half a Year":
+                topModel = @Html.Raw(Json.Serialize(@ViewBag.report.mediumTerm));
+                break;
+            case "All Time":
+                topModel = @Html.Raw(Json.Serialize(@ViewBag.report.longTerm));
+                break;
+        }
+        // Modify the page
+        let songsTimeframe = document.getElementById("songsTimeframe");
+        songsTimeframe.innerHTML = mode;
+        let artistsTimeframe = document.getElementById("artistsTimeframe");
+        artistsTimeframe.innerHTML = mode;
+        let songsTable = document.getElementById("songsList");
+        songsTable.innerHTML = "";
+        addSongContent(songsTable, topModel.topSongs);
+        let artistsTable = document.getElementById("artistsList");
+        artistsTable.innerHTML = "";
+        addArtistContent(artistsTable, topModel.topArtists);
+    }
+
+    function addSongContent(elem, topModel) {
+        for (let i = 0; i < topModel.length; i++) {
+            let trElem = document.createElement("tr");
+            let thElem = document.createElement("th");
+            thElem.scope = "row";
+            thElem.innerHTML = i + 1;
+            trElem.appendChild(thElem);
+            thElem = document.createElement("th");
+            thElem.innerText = topModel[i].name;
+            trElem.appendChild(thElem);
+            let artists = "";
+            topModel[i].artists.forEach((artist) => {
+                if (artists == "")
+                    artists = artists + artist.name;
+                else
+                    artists = artists + ", " + artist.name;
+            });
+            thElem = document.createElement("th");
+            thElem.innerText = artists;
+            trElem.appendChild(thElem);
+            let tdElem = document.createElement("td");
+            tdElem.classList.add("w-25");
+            let vid = document.createElement("video");
+            vid.setAttribute("controls", true);
+            vid.setAttribute("name", "media");
+            let source = document.createElement("source");
+            source.src = topModel[i].previewUrl;
+            source.setAttribute("type", "audio/mpeg");
+            vid.appendChild(source);
+            tdElem.appendChild(vid);
+            trElem.appendChild(tdElem);
+            tdElem = document.createElement("td");
+            tdElem.classList.add("w-25");
+            let aElem = document.createElement("a");
+            aElem.href = topModel[i].uri;
+            let imgElem = document.createElement("img");
+            imgElem.src = topModel[i].album.images[0].url;
+            imgElem.height = 150;
+            imgElem.width = 150;
+            tdElem.appendChild(aElem);
+            tdElem.appendChild(imgElem);
+            trElem.appendChild(tdElem);
+            elem.appendChild(trElem);
+        }
+    }
+    function addArtistContent(elem, topModel) {
+        for (let i = 0; i < topModel.length; i++) {
+            let trElem = document.createElement("tr");
+            let thElem = document.createElement("th");
+            thElem.scope = "row";
+            thElem.innerHTML = i + 1;
+            trElem.appendChild(thElem);
+            thElem = document.createElement("th");
+            thElem.innerText = topModel[i].name;
+            trElem.appendChild(thElem);
+    
+            let tdElem = document.createElement("td");
+            tdElem.classList.add("w-25");
+            let aElem = document.createElement("a");
+            aElem.href = topModel[i].uri;
+            let imgElem = document.createElement("img");
+            imgElem.src = topModel[i].images[0].url;
+            imgElem.height = 150;
+            imgElem.width = 150;
+            tdElem.appendChild(aElem);
+            tdElem.appendChild(imgElem);
+            trElem.appendChild(tdElem);
+            elem.appendChild(trElem);
+        }
+    }
+</script>
